@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoTrust - Future of Environmental Intelligence</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5530 50%, #1a4d3a 75%, #0f2027 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:%23ffffff;stop-opacity:0.03"/><stop offset="100%" style="stop-color:%23ffffff;stop-opacity:0"/></radialGradient></defs><circle cx="20" cy="20" r="2" fill="url(%23g)"/><circle cx="80" cy="40" r="1.5" fill="url(%23g)"/><circle cx="40" cy="80" r="1" fill="url(%23g)"/><circle cx="90" cy="90" r="2.5" fill="url(%23g)"/><circle cx="10" cy="60" r="1.2" fill="url(%23g)"/></svg>') repeat;
+            animation: float 20s ease-in-out infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero {
+            text-align: center;
+            padding: 4rem 0 6rem;
+            position: relative;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(46, 213, 115, 0.1) 0%, rgba(0, 184, 148, 0.05) 50%, transparent 100%);
+            border-radius: 50%;
+            animation: pulse 4s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.8; }
+        }
+        
+        .hero h1 {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #2ed573 0%, #00b894 25%, #00cec9 50%, #74b9ff 75%, #a29bfe 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1.5rem;
+            position: relative;
+            letter-spacing: 0.02em;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(46, 213, 115, 0.3)); }
+            to { filter: drop-shadow(0 0 30px rgba(0, 184, 148, 0.5)); }
+        }
+        
+        .hero p {
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.8);
+            font-weight: 300;
+            max-width: 600px;
+            margin: 0 auto 3rem;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease-out 0.5s both;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2.5rem;
+            padding: 2rem 0 4rem;
+            position: relative;
+        }
+        
+        .feature-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideInUp 0.8s ease-out both;
+        }
+        
+        .feature-card:nth-child(1) { animation-delay: 0.2s; }
+        .feature-card:nth-child(2) { animation-delay: 0.4s; }
+        .feature-card:nth-child(3) { animation-delay: 0.6s; }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(60px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(46, 213, 115, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 24px;
+        }
+        
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(46, 213, 115, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            border-color: rgba(46, 213, 115, 0.3);
+        }
+        
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: linear-gradient(135deg, #2ed573, #00b894);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover .feature-icon {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 15px 30px rgba(46, 213, 115, 0.4);
+        }
+        
+        .feature-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: white;
+        }
+        
+        .feature-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+            font-size: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .cta-section {
+            text-align: center;
+            padding: 4rem 0 6rem;
+            position: relative;
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(135deg, #2ed573, #00b894);
+            color: white;
+            text-decoration: none;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(46, 213, 115, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .cta-button:hover::before {
+            left: 100%;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(46, 213, 115, 0.4);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+            }
+            
+            .hero {
+                padding: 2rem 0 4rem;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+            
+            .feature-card {
+                padding: 2rem 1.5rem;
+            }
+        }
+        
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .floating-elements::before,
+        .floating-elements::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, rgba(46, 213, 115, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            animation: floatAround 15s ease-in-out infinite;
+        }
+        
+        .floating-elements::before {
+            top: 20%;
+            right: 10%;
+            animation-delay: -5s;
+        }
+        
+        .floating-elements::after {
+            bottom: 20%;
+            left: 10%;
+            animation-delay: -10s;
+        }
+        
+        @keyframes floatAround {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(30px, -50px) rotate(90deg); }
+            50% { transform: translate(-20px, -100px) rotate(180deg); }
+            75% { transform: translate(-50px, -25px) rotate(270deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements"></div>
+    
+    <div class="container">
+        <section class="hero">
+            <h1>EcoTrust</h1>
+            <p>Harnessing the power of AI to protect our planet through intelligent environmental monitoring and prediction systems.</p>
+        </section>
+        
+        <section class="features">
+           <div class="feature-card" onclick="window.location.href='/fake-news'">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                </div>
+                <h3>Fake News Detection</h3>
+                <p>Advanced AI algorithms analyze environmental claims and data to identify misinformation, ensuring accurate information reaches decision-makers and the public.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M17.66 11.2C17.43 10.9 17.15 10.64 16.89 10.38C16.22 9.78 15.46 9.35 14.82 8.72C13.33 7.26 13 4.85 13.95 3C13.76 3 13.57 3 13.38 3.01C10.76 3.05 8.52 4.86 7.97 7.5C7.5 9.64 8.13 11.77 9.5 13.24C9.61 13.35 9.72 13.45 9.84 13.54C10.1 13.8 10.3 14.08 10.5 14.36C10.7 14.64 10.86 14.95 10.96 15.27C11.26 16.22 10.84 17.23 10.03 17.72C9.38 18.12 8.63 18.12 7.98 17.72C7.17 17.23 6.75 16.22 7.05 15.27C7.15 14.95 7.31 14.64 7.51 14.36C7.71 14.08 7.91 13.8 8.17 13.54C8.29 13.45 8.4 13.35 8.51 13.24C9.88 11.77 10.51 9.64 10.04 7.5C9.49 4.86 7.25 3.05 4.63 3.01C4.44 3 4.25 3 4.06 3C5.01 4.85 4.68 7.26 3.19 8.72C2.55 9.35 1.79 9.78 1.12 10.38C0.86 10.64 0.58 10.9 0.35 11.2C-0.11 11.73 -0.11 12.47 0.35 13C0.58 13.3 0.86 13.56 1.12 13.82C1.79 14.42 2.55 14.85 3.19 15.48C4.68 16.94 5.01 19.35 4.06 21.2C4.25 21.2 4.44 21.2 4.63 21.19C7.25 21.15 9.49 19.34 10.04 16.7C10.51 14.56 9.88 12.43 8.51 10.96C8.4 10.85 8.29 10.75 8.17 10.66C7.91 10.4 7.71 10.12 7.51 9.84C7.31 9.56 7.15 9.25 7.05 8.93C6.75 7.98 7.17 6.97 7.98 6.48C8.63 6.08 9.38 6.08 10.03 6.48C10.84 6.97 11.26 7.98 10.96 8.93C10.86 9.25 10.7 9.56 10.5 9.84C10.3 10.12 10.1 10.4 9.84 10.66C9.72 10.75 9.61 10.85 9.5 10.96C8.13 12.43 7.5 14.56 7.97 16.7C8.52 19.34 10.76 21.15 13.38 21.19C13.57 21.2 13.76 21.2 13.95 21.2C13 19.35 13.33 16.94 14.82 15.48C15.46 14.85 16.22 14.42 16.89 13.82C17.15 13.56 17.43 13.3 17.66 13C18.12 12.47 18.12 11.73 17.66 11.2Z"/>
+                    </svg>
+                </div>
+                <h3>Forest Fire Prediction</h3>
+                <p>Real-time satellite data and machine learning models predict wildfire risks with unprecedented accuracy, enabling proactive conservation efforts.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3zm5 15h-2v-6H9v6H7v-6H5.83L12 5.83 18.17 12H17v6z"/>
+                        <circle cx="12" cy="8" r="1"/>
+                        <circle cx="9" cy="11" r="1"/>
+                        <circle cx="15" cy="11" r="1"/>
+                    </svg>
+                </div>
+                <h3>Carbon Emission Prediction</h3>
+                <p>Comprehensive tracking and forecasting of carbon emissions across industries, helping organizations achieve their sustainability goals effectively.</p>
+            </div>
+        </section>
+        
+        <section class="cta-section">
+            <a href="#" class="cta-button">
+                <span>Explore the Future</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M16.01 11H4v2h12.01v3L20 12l-3.99-4z"/>
+                </svg>
+            </a>
+        </section>
+    </div>
+</body>
+</html>
