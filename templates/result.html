@@ -295,6 +295,180 @@
             text-align: center;
         }
 
+        /* AI Analysis Button Styles */
+        .ai-analysis-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            margin-top: 1rem;
+            border: none;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-family: 'Orbitron', monospace;
+            font-weight: 600;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out 1.6s both;
+        }
+
+        .ai-analysis-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .ai-analysis-button:hover::before {
+            left: 100%;
+        }
+
+        .ai-analysis-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+        }
+
+        .ai-analysis-button svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+        }
+
+        /* AI Analysis Section Styles */
+        .ai-analysis-card {
+            background: rgba(102, 126, 234, 0.08);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .ai-analysis-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.03) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            border-radius: 24px;
+        }
+
+        .ai-analysis-card:hover::before {
+            opacity: 1;
+        }
+
+        .ai-analysis-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.15);
+        }
+
+        .ai-analysis-header {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            letter-spacing: 0.02em;
+        }
+
+        .ai-analysis-content {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.7;
+            font-size: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+            font-weight: 400;
+        }
+
+        .ai-analysis-content::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .ai-analysis-content::-webkit-scrollbar-track {
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 3px;
+        }
+
+        .ai-analysis-content::-webkit-scrollbar-thumb {
+            background: rgba(102, 126, 234, 0.5);
+            border-radius: 3px;
+        }
+
+        .ai-analysis-content a {
+            color: #74b9ff;
+            text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+
+        .ai-analysis-content a:hover {
+            color: #667eea;
+        }
+
+        .ai-prompt-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            animation: fadeInUp 0.6s ease-out 1.4s both;
+        }
+
+        .typing-prompt {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            font-weight: 500;
+            color: rgba(116, 185, 255, 0.9);
+            text-shadow: 0 0 10px rgba(116, 185, 255, 0.3);
+            min-height: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.2rem;
+            letter-spacing: 0.02em;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 1.2rem;
+            background: rgba(162, 155, 254, 0.8);
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            50% {
+                opacity: 1;
+            }
+
+            51%,
+            100% {
+                opacity: 0;
+            }
+        }
+
         .action-buttons {
             display: flex;
             gap: 1rem;
@@ -416,7 +590,8 @@
                 padding: 1rem;
             }
 
-            .result-card {
+            .result-card,
+            .ai-analysis-card {
                 padding: 1.5rem;
             }
 
@@ -428,6 +603,12 @@
             .btn {
                 width: 100%;
                 max-width: 300px;
+                justify-content: center;
+            }
+
+            .ai-analysis-button {
+                width: 100%;
+                max-width: 250px;
                 justify-content: center;
             }
         }
@@ -486,11 +667,39 @@
         }
 
         .result-card,
+        .ai-analysis-card,
         .news-content,
-        .news-content a {
+        .ai-analysis-content,
+        .news-content a,
+        .ai-analysis-content a {
             pointer-events: auto !important;
             z-index: 10 !important;
             position: relative;
+        }
+
+        #newsContent {
+            position: relative;
+        }
+
+        #typedText::after {
+            content: '|';
+            animation: blink 0.7s steps(1) infinite;
+            margin-left: 2px;
+            color: rgba(255, 255, 255, 0.7);
+            /* matches your theme */
+            font-weight: bold;
+        }
+
+        @keyframes blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0;
+            }
         }
     </style>
 </head>
@@ -528,6 +737,24 @@
                         </div>
                         <div class="confidence-value" id="confidenceValue">85%</div>
                     </div>
+
+                    <!-- AI Analysis Button - Only shown when AI analysis is available -->
+                    {% if gemini_summary %}
+                    <div class="ai-prompt-container">
+                        <div class="typing-prompt">
+                            <span id="typingPrompt"></span>
+                            <span class="typing-cursor"></span>
+                        </div>
+                    </div>
+
+                    <button class="ai-analysis-button" id="scrollToAI">
+                        <svg viewBox="0 0 24 24">
+                            <path
+                                d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                        </svg>
+                        <span>Analyze with AI</span>
+                    </button>
+                    {% endif %}
                 </div>
             </div>
 
@@ -572,18 +799,18 @@
                 </div>
             </div>
             {% endif %}
-            <!-- 🤖 Gemini AI Analysis Summary -->
+
+            <!-- 🤖 AI News Analysis Section -->
             {% if gemini_summary %}
-            <div class="result-card">
+            <div class="ai-analysis-card" id="ai-analysis">
                 <div class="news-input">
-                    <h3>🤖 Gemini AI Summary</h3>
-                    <div class="news-content">
-                        {{ gemini_summary }}
+                    <h3 class="ai-analysis-header">🤖 AI News Analysis</h3>
+                    <div class="ai-analysis-content">
+                        {{ gemini_summary | safe }}
                     </div>
                 </div>
             </div>
             {% endif %}
-
 
         </div>
 
@@ -615,8 +842,19 @@
         const confidence = {{ confidence | tojson | safe }};
 
         function displayResults() {
-            // Display the analyzed news content
-            document.getElementById('newsContent').textContent = analyzedNews;
+            const newsEl = document.getElementById('newsContent');
+            let i = 0;
+
+            function typeWriterEffect() {
+                if (i < analyzedNews.length) {
+                    newsEl.textContent += analyzedNews.charAt(i);
+                    i++;
+                    setTimeout(typeWriterEffect, 30);  // Speed control
+                }
+            }
+
+            newsEl.textContent = "";
+            typeWriterEffect();
 
             const resultIcon = document.getElementById('resultIcon');
             const resultMessage = document.getElementById('resultMessage');
@@ -630,16 +868,16 @@
                 if (isReal) {
                     resultClass = 'real';
                     message = 'Likely Real News';
-                    iconPath = 'M10 15.172l-3.95-3.95-1.414 1.414L10 18 20.364 7.636l-1.414-1.414z'; // check icon
+                    iconPath = 'M10 15.172l-3.95-3.95-1.414 1.414L10 18 20.364 7.636l-1.414-1.414z';
                 } else {
                     resultClass = 'fake';
                     message = 'Likely Fake News';
-                    iconPath = 'M18.3 5.71L12 12l6.3 6.29-1.41 1.42L12 13.41l-6.29 6.3-1.42-1.42L10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z'; // X icon
+                    iconPath = 'M18.3 5.71L12 12l6.3 6.29-1.41 1.42L12 13.41l-6.29 6.3-1.42-1.42L10.59 12 4.29 5.71 5.71 4.29 12 10.59l6.29-6.3z';
                 }
             } else {
                 resultClass = 'uncertain';
                 message = 'Uncertain Result';
-                iconPath = 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15h-1v-2h2v2h-1zm0-4h-1V7h2v6h-1z'; // warning icon
+                iconPath = 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 15h-1v-2h2v2h-1zm0-4h-1V7h2v6h-1z';
             }
 
             resultIcon.className = `result-icon ${resultClass}`;
@@ -654,8 +892,73 @@
             }, 1500);
         }
 
-        document.addEventListener('DOMContentLoaded', displayResults);
-    </script>
 
+        // Smooth scroll to AI analysis section
+        document.addEventListener('DOMContentLoaded', function () {
+            displayResults();
+
+            const scrollToAIButton = document.getElementById('scrollToAI');
+            if (scrollToAIButton) {
+                scrollToAIButton.addEventListener('click', function () {
+                    document.getElementById('ai-analysis').scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                });
+            }
+        });
+        const prompts = [
+            "Confused? Reverify with AI...",
+            "Not sure? Check AI's analysis...",
+            "Let AI double-check this claim...",
+            "Want deeper insights? Try AI...",
+            "Trust but verify — use our AI assistant..."
+        ];
+
+        let currentPromptIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let typingSpeed = 70;
+        let deletingSpeed = 40;
+        let pauseAfterComplete = 2000;
+        let pauseAfterDelete = 800;
+
+        function typeText() {
+            const typingElement = document.getElementById('typingPrompt');
+            if (!typingElement) return;
+
+            const currentPrompt = prompts[currentPromptIndex];
+
+            if (!isDeleting && charIndex < currentPrompt.length) {
+                // Typing forward
+                typingElement.textContent = currentPrompt.substring(0, charIndex + 1);
+                charIndex++;
+                setTimeout(typeText, typingSpeed);
+            } else if (isDeleting && charIndex > 0) {
+                // Deleting backward
+                typingElement.textContent = currentPrompt.substring(0, charIndex - 1);
+                charIndex--;
+                setTimeout(typeText, deletingSpeed);
+            } else if (!isDeleting && charIndex === currentPrompt.length) {
+                // Pause after typing complete
+                isDeleting = true;
+                setTimeout(typeText, pauseAfterComplete);
+            } else if (isDeleting && charIndex === 0) {
+                // Move to next sentence
+                isDeleting = false;
+                currentPromptIndex = (currentPromptIndex + 1) % prompts.length;
+                setTimeout(typeText, pauseAfterDelete);
+            }
+        }
+
+        // Call this when the page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                typeText();
+            }, 3000); // 1000ms = 1 second delay
+        });
+
+
+    </script>
 
 </html>

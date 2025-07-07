@@ -2,16 +2,567 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Fake News Detector</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 25%, #2c5530 50%, #1a4d3a 75%, #0f2027 100%);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem 1rem;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="g" cx="50%" cy="50%" r="50%"><stop offset="0%" style="stop-color:%23ffffff;stop-opacity:0.05"/><stop offset="100%" style="stop-color:%23ffffff;stop-opacity:0"/></radialGradient></defs><circle cx="15" cy="25" r="1.5" fill="url(%23g)"/><circle cx="85" cy="35" r="2" fill="url(%23g)"/><circle cx="45" cy="75" r="1.2" fill="url(%23g)"/><circle cx="75" cy="85" r="1.8" fill="url(%23g)"/><circle cx="25" cy="55" r="1" fill="url(%23g)"/></svg>') repeat;
+            animation: starMove 25s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes starMove {
+            0% { transform: translateY(0px) rotate(0deg); }
+            100% { transform: translateY(-100px) rotate(360deg); }
+        }
+        
+        .container {
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(46, 213, 115, 0.15) 0%, rgba(0, 184, 148, 0.08) 50%, transparent 100%);
+            border-radius: 50%;
+            animation: headerPulse 6s ease-in-out infinite;
+        }
+        
+        @keyframes headerPulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.4; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 0.7; }
+        }
+        
+        .main-title {
+            font-family: 'Orbitron', monospace;
+            font-size: clamp(2.5rem, 6vw, 4rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #2ed573 0%, #00b894 25%, #00cec9 50%, #74b9ff 75%, #2ed573 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            position: relative;
+            letter-spacing: 0.05em;
+            animation: titleGlow 4s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { filter: drop-shadow(0 0 25px rgba(46, 213, 115, 0.4)); }
+            to { filter: drop-shadow(0 0 40px rgba(0, 184, 148, 0.6)); }
+        }
+        
+        .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.3rem;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 400;
+            margin-bottom: 1.5rem;
+            animation: fadeInUp 1s ease-out 0.3s both;
+        }
+        
+        .typing-text {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.4rem;
+            color: rgba(46, 213, 115, 0.9);
+            font-weight: 500;
+            height: 3rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInUp 1s ease-out 0.6s both;
+            letter-spacing: 0.5px;
+        }
+        
+        .typing-text::after {
+            content: '|';
+            animation: blink 1s infinite;
+            font-size: 1.6rem;
+            margin-left: 2px;
+        }
+        
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-container {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            animation: slideInUp 1s ease-out 0.8s both;
+        }
+        
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(46, 213, 115, 0.1) 0%, rgba(0, 184, 148, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.5s ease;
+            border-radius: 32px;
+        }
+        
+        .form-container:hover::before {
+        opacity: 0.3; /* reduce brightness */
+        background: linear-gradient(135deg, rgba(46, 213, 115, 0.07) 0%, rgba(0, 184, 148, 0.03) 100%);
+    }
+        
+        .form-container::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #2ed573, #00b894, #00cec9, #74b9ff, #2ed573);
+            background-size: 300% 300%;
+            border-radius: 34px;
+            z-index: -1;
+            animation: borderGlow 4s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+        
+        .form-container:hover::after {
+        opacity: 0.5; /* reduce outer glow */
+        filter: blur(2px); /* smooth subtle glowing */
+    }
+     .form-container {
+        transition: all 0.3s ease-in-out;
+    }   
+        @keyframes borderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        .form-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .news-icon {
+            width: 24px;
+            height: 24px;
+            fill: rgba(46, 213, 115, 0.8);
+        }
+        
+        .textarea-wrapper {
+            position: relative;
+            margin-bottom: 2.5rem;
+        }
+        
+        .textarea-wrapper::before {
+            content: '';
+            position: absolute;
+            top: -3px;
+            left: -3px;
+            right: -3px;
+            bottom: -3px;
+            background: linear-gradient(45deg, #2ed573, #00b894, #00cec9, #74b9ff, #2ed573);
+            background-size: 300% 300%;
+            border-radius: 20px;
+            z-index: -1;
+            animation: inputBorderGlow 3s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .textarea-wrapper:focus-within::before {
+            opacity: 1;
+        }
+        
+        @keyframes inputBorderGlow {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        #newsText {
+            width: 100%;
+            min-height: 200px;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            color: rgba(255, 255, 255, 0.95);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            line-height: 1.6;
+            resize: vertical;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 1;
+        }
+        
+        #newsText::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+        
+        #newsText:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(46, 213, 115, 0.5);
+            box-shadow: 0 0 30px rgba(46, 213, 115, 0.2);
+            transform: scale(1.01);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: linear-gradient(135deg, #2ed573, #00b894);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-family: 'Orbitron', monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+            box-shadow: 0 15px 35px rgba(46, 213, 115, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+        }
+        
+        .analyze-icon {
+            width: 20px;
+            height: 20px;
+            fill: white;
+        }
+        
+        .submit-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+            z-index: -1;
+        }
+        
+        .submit-btn:hover::before {
+            left: 100%;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 20px 45px rgba(116, 185, 255, 0.4);
+            background: linear-gradient(135deg, #5a9cff, #8b7dff);
+        }
+        
+        .submit-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+        
+        .floating-icons {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        .floating-icon {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            opacity: 0.1;
+            animation: floatUpDown 8s ease-in-out infinite;
+        }
+        
+        .floating-icon:nth-child(1) {
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+        
+        .floating-icon:nth-child(2) {
+            top: 20%;
+            right: 15%;
+            animation-delay: -2s;
+        }
+        
+        .floating-icon:nth-child(3) {
+            bottom: 20%;
+            left: 8%;
+            animation-delay: -4s;
+        }
+        
+        .floating-icon:nth-child(4) {
+            bottom: 15%;
+            right: 10%;
+            animation-delay: -6s;
+        }
+        
+        @keyframes floatUpDown {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            25% { transform: translateY(-30px) rotate(90deg); }
+            50% { transform: translateY(-60px) rotate(180deg); }
+            75% { transform: translateY(-30px) rotate(270deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 2rem 1.5rem;
+                border-radius: 24px;
+            }
+            
+            .main-title {
+                font-size: 2.5rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .typing-text {
+                font-size: 1.2rem;
+            }
+            
+            #newsText {
+                min-height: 150px;
+                padding: 1rem;
+            }
+            
+            .submit-btn {
+                padding: 1rem 1.5rem;
+                font-size: 1rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .form-container {
+                padding: 1.5rem 1rem;
+            }
+            
+            .typing-text {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Fake News Detector</h1>
-
-    <form action="/analyze" method="POST">
-        <label for="newsText">Enter News Text:</label><br><br>
-        <textarea id="newsText" name="newsText" rows="10" cols="50" required></textarea><br><br>
-        <button type="submit">Analyze</button>
-    </form>
-
+    <div class="floating-icons">
+        <div class="floating-icon">
+            <svg viewBox="0 0 24 24" fill="rgba(116, 185, 255, 0.3)">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+        </div>
+        <div class="floating-icon">
+            <svg viewBox="0 0 24 24" fill="rgba(162, 155, 254, 0.3)">
+                <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+            </svg>
+        </div>
+        <div class="floating-icon">
+            <svg viewBox="0 0 24 24" fill="rgba(253, 121, 168, 0.3)">
+                <path d="M9 11H7v9h2v-9zm4 0h-2v9h2v-9zm4 0h-2v9h2v-9zm2-7h-3V2h-2v2H8V2H6v2H3v2h18V4zM3 19h18v2H3v-2z"/>
+            </svg>
+        </div>
+        <div class="floating-icon">
+            <svg viewBox="0 0 24 24" fill="rgba(253, 203, 110, 0.3)">
+                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+            </svg>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="header">
+            <h1 class="main-title">Fake News Detector</h1>
+            <p class="subtitle">Advanced AI-powered truth verification</p>
+            <div class="typing-text" id="typingText">Enter news text to detect its authenticity...</div>
+        </div>
+        
+        <div class="form-container">
+            <form action="/analyze" method="POST">
+                <label for="newsText" class="form-label">
+                    <svg class="news-icon" viewBox="0 0 24 24">
+                        <path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/>
+                    </svg>
+                    Paste Your News Article Below
+                </label>
+                
+                <div class="textarea-wrapper">
+                    <textarea 
+                        id="newsText" 
+                        name="news_text" 
+                        rows="10" 
+                        required
+                        placeholder="Enter or paste the news article you want to analyze for authenticity. Our AI will examine the content, language patterns, and credibility indicators to provide you with a comprehensive truth assessment..."
+                    ></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <svg class="analyze-icon" viewBox="0 0 24 24">
+                        <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+                    </svg>
+                    Analyze Truth Score
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // Enhanced typing animation with larger, more prominent text
+        const typingTexts = [
+            "Enter news text to detect its authenticity...",
+            "Powered by advanced machine learning algorithms...",
+            "Get instant credibility analysis...",
+            "Protect yourself from misinformation...",
+            "Real-time fact-checking technology...",
+            "Advanced pattern recognition engine..."
+        ];
+        
+        let currentTextIndex = 0;
+        let currentCharIndex = 0;
+        let isDeleting = false;
+        const typingElement = document.getElementById('typingText');
+        
+        function typeText() {
+            const currentText = typingTexts[currentTextIndex];
+            
+            if (isDeleting) {
+                typingElement.textContent = currentText.substring(0, currentCharIndex - 1);
+                currentCharIndex--;
+                
+                if (currentCharIndex === 0) {
+                    isDeleting = false;
+                    currentTextIndex = (currentTextIndex + 1) % typingTexts.length;
+                }
+            } else {
+                typingElement.textContent = currentText.substring(0, currentCharIndex + 1);
+                currentCharIndex++;
+                
+                if (currentCharIndex === currentText.length) {
+                    isDeleting = true;
+                    setTimeout(typeText, 2500);
+                    return;
+                }
+            }
+            
+            setTimeout(typeText, isDeleting ? 40 : 80);
+        }
+        
+        // Start typing animation
+        setTimeout(typeText, 1000);
+        
+        // Enhanced form interactions
+        const textarea = document.getElementById('newsText');
+        const submitBtn = document.querySelector('.submit-btn');
+        
+        textarea.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                submitBtn.style.background = 'linear-gradient(135deg, #00b894, #2ed573)';
+                submitBtn.style.boxShadow = '0 15px 35px rgba(46, 213, 115, 0.4)';
+            } else {
+                submitBtn.style.background = 'linear-gradient(135deg, #74b9ff, #a29bfe)';
+                submitBtn.style.boxShadow = '0 15px 35px rgba(116, 185, 255, 0.3)';
+            }
+        });
+        
+        // Form submission effect
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const loadingIcon = `
+                <svg class="analyze-icon" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                    <path d="M12,4V2A10,10 0 0,0 2,12H4A8,8 0 0,1 12,4Z"/>
+                </svg>
+            `;
+            submitBtn.innerHTML = loadingIcon + 'Analyzing...';
+            submitBtn.style.transform = 'translateY(-2px) scale(0.98)';
+        });
+        
+        // Add spin animation for loading
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+        
+    </script>
 </body>
 </html>
