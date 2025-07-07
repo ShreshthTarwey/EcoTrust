@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 from search_logic import score_news
 from gemini_logic import analyze_with_gemini
-
+import os
 app = Flask(__name__)
 
 @app.route("/")
@@ -70,4 +70,6 @@ def analyze():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
+
