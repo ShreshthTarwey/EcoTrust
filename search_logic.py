@@ -1,6 +1,7 @@
 import os
 import re
 import requests
+import torch
 from typing import List, Dict
 import spacy
 from sentence_transformers import SentenceTransformer, util
