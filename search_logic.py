@@ -2,20 +2,16 @@ import os
 import re
 import requests
 from typing import List, Dict
-from dotenv import load_dotenv
 import spacy
 from sentence_transformers import SentenceTransformer, util
 from keybert import KeyBERT
-
-# Load environment variables
-load_dotenv()
 
 # Load models once
 nlp = spacy.load("en_core_web_sm")
 embedder = SentenceTransformer("all-mpnet-base-v2")
 kw_model = KeyBERT()
 
-# API Keys
+# API Keys from environment variables (Railway or local if manually set)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
