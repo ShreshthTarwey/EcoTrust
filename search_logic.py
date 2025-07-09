@@ -90,14 +90,24 @@ def is_credible_domain(url: str) -> bool:
 def calculate_semantic_similarity(text: str, snippet: str) -> float:
     text_sents = [sent.text for sent in nlp(text).sents]
     snippet_sents = [s.strip() for s in re.split(r'[.!?]', snippet) if s.strip()]
-    
+
+    if not text_sents or not snippet_sents:
+        return 0.0
+
+    # Batch encode for memory efficiency
+    all_sentences = text_sents + snippet_sents
+    embeddings = embedder.encode(all_sentences, convert_to_tensor=True)
+
+    text_embeddings = embeddings[:len(text_sents)]
+    snippet_embeddings = embeddings[len(text_sents):]
+
     max_sim = 0.0
-    for t in text_sents:
-        for s in snippet_sents:
-            embeddings = embedder.encode([t, s], convert_to_tensor=True)
-            sim = util.cos_sim(embeddings[0], embeddings[1]).item()
+    for te in text_embeddings:
+        for se in snippet_embeddings:
+            sim = util.cos_sim(te, se).item()
             max_sim = max(max_sim, sim)
     return max_sim
+
 
 def score_news(text: str) -> dict:
     keywords = extract_keywords(text)
