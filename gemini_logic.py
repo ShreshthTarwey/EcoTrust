@@ -14,19 +14,20 @@ def make_links_clickable(text: str) -> str:
 
 def analyze_with_gemini(news_text: str) -> str:
     """
-    Sends the news text to Gemini for analysis and formats the response with links and HTML breaks.
+    Sends the news text to Gemini for fact-checking and formats the response with clickable links and HTML breaks.
+    Returns an HTML-safe string.
     """
     try:
-        # Load the API key at runtime to avoid early import crash
+        # Load Gemini API key
         GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
         if not GEMINI_API_KEY:
             raise EnvironmentError("❌ GEMINI_API_KEY not found in environment variables.")
 
-        # Configure and initialize Gemini
+        # Configure Gemini
         genai.configure(api_key=GEMINI_API_KEY)
         model = genai.GenerativeModel("gemini-2.5-flash")
 
-        # Create prompt
+        # Build prompt
         prompt = (
             "You are a fact-checking assistant. Analyze the following news and respond in this exact format:\n"
             "Confidence Score: <confidence as a percentage, e.g. 87%>\n"
@@ -36,15 +37,27 @@ def analyze_with_gemini(news_text: str) -> str:
             f"News: {news_text}"
         )
 
-        # Generate response
-        response = model.generate_content(prompt)
-        raw_output = response.text.strip()
+        # Generate response with memory-limited configuration
+        response = model.generate_content(
+            prompt,
+            generation_config={
+                "temperature": 0.7,
+                "max_output_tokens": 512,
+                "top_p": 0.9,
+                "top_k": 40
+            }
+        )
 
-        # Post-process response
+        # Clean and format output
+        raw_output = response.text.strip()
         clickable = make_links_clickable(raw_output)
         html_ready_output = clickable.replace("\n", "<br>")
 
         return html_ready_output
 
     except Exception as e:
-        return f"❌ Error during Gemini analysis: {str(e)}"
+        return (
+            f"<b>AI Analysis Failed</b><br>"
+            f"❌ Reason: {str(e)}<br>"
+            f"Please try again later or verify manually."
+        )
