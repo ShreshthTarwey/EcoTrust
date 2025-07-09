@@ -2,16 +2,6 @@ import os
 import re
 import google.generativeai as genai
 
-# Load Gemini API Key and configure
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-if not GEMINI_API_KEY:
-    raise EnvironmentError("❌ GEMINI_API_KEY not found in environment variables.")
-
-genai.configure(api_key=GEMINI_API_KEY)
-
-# Initialize Gemini model
-model = genai.GenerativeModel("gemini-2.5-flash")
-
 def make_links_clickable(text: str) -> str:
     """
     Converts URLs in plain text to HTML clickable anchor tags.
@@ -27,6 +17,16 @@ def analyze_with_gemini(news_text: str) -> str:
     Sends the news text to Gemini for analysis and formats the response with links and HTML breaks.
     """
     try:
+        # Load the API key at runtime to avoid early import crash
+        GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+        if not GEMINI_API_KEY:
+            raise EnvironmentError("❌ GEMINI_API_KEY not found in environment variables.")
+
+        # Configure and initialize Gemini
+        genai.configure(api_key=GEMINI_API_KEY)
+        model = genai.GenerativeModel("gemini-2.5-flash")
+
+        # Create prompt
         prompt = (
             "You are a fact-checking assistant. Analyze the following news and respond in this exact format:\n"
             "Confidence Score: <confidence as a percentage, e.g. 87%>\n"
@@ -36,9 +36,11 @@ def analyze_with_gemini(news_text: str) -> str:
             f"News: {news_text}"
         )
 
+        # Generate response
         response = model.generate_content(prompt)
         raw_output = response.text.strip()
 
+        # Post-process response
         clickable = make_links_clickable(raw_output)
         html_ready_output = clickable.replace("\n", "<br>")
 
