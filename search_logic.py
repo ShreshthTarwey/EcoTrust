@@ -3,26 +3,20 @@ import re
 import requests
 from typing import List, Dict
 import spacy
-import torch
 from sentence_transformers import SentenceTransformer, util
 from keybert import KeyBERT
 
-# Load models with CPU and no gradients
-device = "cpu"
-torch.set_grad_enabled(False)
-
-# ✅ Use lightweight model shared between KeyBERT and embedder
-shared_model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
-
+# Load NLP and Embedding models
 nlp = spacy.load("en_core_web_sm")
-embedder = shared_model
-kw_model = KeyBERT(shared_model)
+embedder = SentenceTransformer("all-MiniLM-L6-v2", device="cpu")
+kw_model = KeyBERT(model=embedder)
 
-# API Keys from environment variables
+# Env keys
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 
+# Constants
 CREDIBLE_DOMAINS = [
     "bbc.com", "reuters.com", "ndtv.com", "indianexpress.com", "thehindu.com",
     "timesofindia.indiatimes.com", "hindustantimes.com", "thewire.in", "scroll.in",
@@ -32,24 +26,31 @@ CREDIBLE_DOMAINS = [
 ]
 SIMILARITY_THRESHOLD = 0.60
 MAX_RELATED_ARTICLES = 5
+MAX_SENTENCES = 3  # Prevent OOM in similarity calc
 
+# --- Keyword Extraction ---
 def extract_keywords(text: str) -> List[str]:
     try:
         keywords = kw_model.extract_keywords(
             text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
         )
-        return [kw[0] for kw in keywords]
+        if keywords:
+            return [kw[0] for kw in keywords]
     except Exception as e:
-        print("⚠️ KeyBERT Error:", e)
-    
+        print("⚠️ Keyword Extraction Failed:", e)
+
+    # Fallback to NER-based or split
     doc = nlp(text)
     ents = [ent.text for ent in doc.ents if ent.label_ in {"ORG", "PERSON", "GPE", "EVENT"}]
     return ents or text.split()[:5]
 
-def real_web_search(keywords: List[str], num_results: int = 10, days: int = 7) -> List[Dict]:
+# --- Real Web Search ---
+def real_web_search(keywords: List[str], num_results: int = 5, days: int = 3) -> List[Dict]:
     query = " ".join(keywords)
-    serpapi_url = f"https://serpapi.com/search.json?q={query}&engine=google&api_key={SERPAPI_KEY}&num={num_results}&tbs=qdr:d{days}"
-    
+    serpapi_url = (
+        f"https://serpapi.com/search.json?q={query}&engine=google&api_key={SERPAPI_KEY}"
+        f"&num={num_results}&tbs=qdr:d{days}"
+    )
     try:
         response = requests.get(serpapi_url, timeout=5)
         results = response.json()
@@ -84,31 +85,36 @@ def real_web_search(keywords: List[str], num_results: int = 10, days: int = 7) -
         print("⚠️ Google Search Error:", e)
         return []
 
+# --- Domain Check ---
 def is_credible_domain(url: str) -> bool:
     return any(domain in url for domain in CREDIBLE_DOMAINS)
 
+# --- Similarity Scoring ---
 def calculate_semantic_similarity(text: str, snippet: str) -> float:
-    text_sents = [sent.text for sent in nlp(text).sents]
-    snippet_sents = [s.strip() for s in re.split(r'[.!?]', snippet) if s.strip()]
+    text_sents = [sent.text for sent in nlp(text).sents][:MAX_SENTENCES]
+    snippet_sents = [s.strip() for s in re.split(r'[.!?]', snippet) if s.strip()][:MAX_SENTENCES]
 
     if not text_sents or not snippet_sents:
         return 0.0
 
-    # Batch encode for memory efficiency
-    all_sentences = text_sents + snippet_sents
-    embeddings = embedder.encode(all_sentences, convert_to_tensor=True)
+    try:
+        all_sentences = text_sents + snippet_sents
+        embeddings = embedder.encode(all_sentences, convert_to_tensor=True)
 
-    text_embeddings = embeddings[:len(text_sents)]
-    snippet_embeddings = embeddings[len(text_sents):]
+        text_embeddings = embeddings[:len(text_sents)]
+        snippet_embeddings = embeddings[len(text_sents):]
 
-    max_sim = 0.0
-    for te in text_embeddings:
-        for se in snippet_embeddings:
-            sim = util.cos_sim(te, se).item()
-            max_sim = max(max_sim, sim)
-    return max_sim
+        max_sim = 0.0
+        for te in text_embeddings:
+            for se in snippet_embeddings:
+                sim = util.cos_sim(te, se).item()
+                max_sim = max(max_sim, sim)
+        return max_sim
+    except Exception as e:
+        print("⚠️ Similarity Error:", e)
+        return 0.0
 
-
+# --- Final Scoring Logic ---
 def score_news(text: str) -> dict:
     keywords = extract_keywords(text)
     print("🔍 Extracted Keywords:", keywords)
@@ -124,8 +130,9 @@ def score_news(text: str) -> dict:
         url = result["url"]
         snippet = result["snippet"]
         title = result["title"]
-        similarity = calculate_semantic_similarity(text.lower(), snippet)
         date = result.get("date", "")
+
+        similarity = calculate_semantic_similarity(text.lower(), snippet)
 
         article = {
             "url": url,
@@ -141,6 +148,7 @@ def score_news(text: str) -> dict:
         else:
             related_articles.append(article)
 
+    # Confidence logic
     score = {0: 0, 1: 50, 2: 70, 3: 85}.get(credible_and_similar, 100)
     is_real = score >= 70
 
@@ -153,7 +161,7 @@ def score_news(text: str) -> dict:
         "related_articles": related_articles
     }
 
-# Local test
+# Local debug
 if __name__ == "__main__":
     sample_news = "Ameesha Patel is planning to marry Salman Khan and have good-looking babies together."
     print("📰 Input:", sample_news)
