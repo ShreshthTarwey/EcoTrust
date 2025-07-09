@@ -8,7 +8,7 @@ from keybert import KeyBERT
 
 # Load models once
 nlp = spacy.load("en_core_web_sm")
-embedder = SentenceTransformer("all-mpnet-base-v2")
+embedder = SentenceTransformer("paraphrase-MiniLM-L6-v2")
 kw_model = KeyBERT()
 
 # API Keys from environment variables (Railway or local if manually set)
