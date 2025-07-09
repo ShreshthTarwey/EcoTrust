@@ -8,10 +8,14 @@ from keybert import KeyBERT
 
 # Load models once
 nlp = spacy.load("en_core_web_sm")
-embedder = SentenceTransformer("paraphrase-MiniLM-L6-v2")
-kw_model = KeyBERT()
 
-# API Keys from environment variables (Railway or local if manually set)
+# ✅ Use lightweight model for KeyBERT to avoid memory issues
+kw_model = KeyBERT(SentenceTransformer("paraphrase-MiniLM-L3-v2"))
+
+# ✅ Use slightly heavier but accurate model for semantic similarity
+embedder = SentenceTransformer("paraphrase-MiniLM-L6-v2")
+
+# API Keys from environment variables (Railway or local)
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
@@ -28,12 +32,16 @@ SIMILARITY_THRESHOLD = 0.60
 MAX_RELATED_ARTICLES = 5
 
 def extract_keywords(text: str) -> List[str]:
-    keywords = kw_model.extract_keywords(
-        text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
-    )
-    if keywords:
-        return [kw[0] for kw in keywords]
-    
+    try:
+        keywords = kw_model.extract_keywords(
+            text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
+        )
+        if keywords:
+            return [kw[0] for kw in keywords]
+    except Exception as e:
+        print("⚠️ KeyBERT fallback due to error:", e)
+
+    # Fallback on named entities or basic split
     doc = nlp(text)
     ents = [ent.text for ent in doc.ents if ent.label_ in {"ORG", "PERSON", "GPE", "EVENT"}]
     return ents or text.split()[:5]
@@ -59,8 +67,8 @@ def real_web_search(keywords: List[str], num_results: int = 10, days: int = 7) -
         print("⚠️ SerpAPI Error:", e)
 
     # Fallback to Google Custom Search
-    url = f"https://www.googleapis.com/customsearch/v1?key={GOOGLE_API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}&num={num_results}"
     try:
+        url = f"https://www.googleapis.com/customsearch/v1?key={GOOGLE_API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}&num={num_results}"
         response = requests.get(url, timeout=5)
         results = response.json()
         return [
