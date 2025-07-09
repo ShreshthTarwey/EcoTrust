@@ -3,24 +3,26 @@ import re
 import requests
 from typing import List, Dict
 import spacy
+import torch
 from sentence_transformers import SentenceTransformer, util
 from keybert import KeyBERT
 
-# Load models once
+# Load models with CPU and no gradients
+device = "cpu"
+torch.set_grad_enabled(False)
+
+# ✅ Use lightweight model shared between KeyBERT and embedder
+shared_model = SentenceTransformer("all-MiniLM-L6-v2", device=device)
+
 nlp = spacy.load("en_core_web_sm")
+embedder = shared_model
+kw_model = KeyBERT(shared_model)
 
-# ✅ Use lightweight model for KeyBERT to avoid memory issues
-kw_model = KeyBERT(SentenceTransformer("paraphrase-MiniLM-L3-v2"))
-
-# ✅ Use slightly heavier but accurate model for semantic similarity
-embedder = SentenceTransformer("paraphrase-MiniLM-L6-v2")
-
-# API Keys from environment variables (Railway or local)
+# API Keys from environment variables
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 SEARCH_ENGINE_ID = os.getenv("SEARCH_ENGINE_ID")
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 
-# Config
 CREDIBLE_DOMAINS = [
     "bbc.com", "reuters.com", "ndtv.com", "indianexpress.com", "thehindu.com",
     "timesofindia.indiatimes.com", "hindustantimes.com", "thewire.in", "scroll.in",
@@ -36,12 +38,10 @@ def extract_keywords(text: str) -> List[str]:
         keywords = kw_model.extract_keywords(
             text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
         )
-        if keywords:
-            return [kw[0] for kw in keywords]
+        return [kw[0] for kw in keywords]
     except Exception as e:
-        print("⚠️ KeyBERT fallback due to error:", e)
-
-    # Fallback on named entities or basic split
+        print("⚠️ KeyBERT Error:", e)
+    
     doc = nlp(text)
     ents = [ent.text for ent in doc.ents if ent.label_ in {"ORG", "PERSON", "GPE", "EVENT"}]
     return ents or text.split()[:5]
@@ -66,7 +66,7 @@ def real_web_search(keywords: List[str], num_results: int = 10, days: int = 7) -
     except Exception as e:
         print("⚠️ SerpAPI Error:", e)
 
-    # Fallback to Google Custom Search
+    # Fallback: Google Custom Search
     try:
         url = f"https://www.googleapis.com/customsearch/v1?key={GOOGLE_API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}&num={num_results}"
         response = requests.get(url, timeout=5)
