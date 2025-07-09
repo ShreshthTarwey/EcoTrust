@@ -1,16 +1,16 @@
 import os
 import re
 import requests
-import torch
 from typing import List, Dict
 import spacy
-from sentence_transformers import SentenceTransformer, util
+from sentence_transformers import SentenceTransformer
 from keybert import KeyBERT
+from scipy.spatial.distance import cosine
 
-# Models
+# Load models once
 nlp = spacy.load("en_core_web_sm")
-embedder = SentenceTransformer("paraphrase-albert-small-v2")
-kw_model = KeyBERT(model=embedder)
+embedder = SentenceTransformer("all-MiniLM-L6-v2")  # Lightweight and accurate
+kw_model = KeyBERT()
 
 # API Keys
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
@@ -30,24 +30,20 @@ MAX_RELATED_ARTICLES = 5
 MAX_SENTENCES = 2
 
 def extract_keywords(text: str) -> List[str]:
-    try:
-        keywords = kw_model.extract_keywords(
-            text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
-        )
-        if keywords:
-            return [kw[0] for kw in keywords]
-    except:
-        pass
+    keywords = kw_model.extract_keywords(
+        text, keyphrase_ngram_range=(1, 2), stop_words="english", top_n=5
+    )
+    if keywords:
+        return [kw[0] for kw in keywords]
+    
     doc = nlp(text)
     ents = [ent.text for ent in doc.ents if ent.label_ in {"ORG", "PERSON", "GPE", "EVENT"}]
     return ents or text.split()[:5]
 
-def real_web_search(keywords: List[str], num_results: int = 5, days: int = 2) -> List[Dict]:
+def real_web_search(keywords: List[str], num_results: int = 10, days: int = 7) -> List[Dict]:
     query = " ".join(keywords)
-    serpapi_url = (
-        f"https://serpapi.com/search.json?q={query}&engine=google&api_key={SERPAPI_KEY}"
-        f"&num={num_results}&tbs=qdr:d{days}"
-    )
+    serpapi_url = f"https://serpapi.com/search.json?q={query}&engine=google&api_key={SERPAPI_KEY}&num={num_results}&tbs=qdr:d{days}"
+    
     try:
         response = requests.get(serpapi_url, timeout=5)
         results = response.json()
@@ -64,8 +60,9 @@ def real_web_search(keywords: List[str], num_results: int = 5, days: int = 2) ->
     except Exception as e:
         print("⚠️ SerpAPI Error:", e)
 
+    # Fallback to Google Custom Search
+    url = f"https://www.googleapis.com/customsearch/v1?key={GOOGLE_API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}&num={num_results}"
     try:
-        url = f"https://www.googleapis.com/customsearch/v1?key={GOOGLE_API_KEY}&cx={SEARCH_ENGINE_ID}&q={query}&num={num_results}"
         response = requests.get(url, timeout=5)
         results = response.json()
         return [
@@ -85,23 +82,18 @@ def is_credible_domain(url: str) -> bool:
     return any(domain in url for domain in CREDIBLE_DOMAINS)
 
 def calculate_semantic_similarity(text: str, snippet: str) -> float:
-    text_sents = [sent.text for sent in nlp(text).sents][:MAX_SENTENCES]
-    snippet_sents = [s.strip() for s in re.split(r'[.!?]', snippet) if s.strip()][:MAX_SENTENCES]
-
-    if not text_sents or not snippet_sents:
-        return 0.0
-
     try:
-        with torch.no_grad():  # No autograd tracking
-            all_sentences = text_sents + snippet_sents
-            embeddings = embedder.encode(all_sentences, convert_to_numpy=True)
+        text_sents = [sent.text.strip() for sent in nlp(text).sents][:MAX_SENTENCES]
+        snippet_sents = [s.strip() for s in re.split(r'[.!?]', snippet) if s.strip()][:MAX_SENTENCES]
+        all_sentences = text_sents + snippet_sents
+        embeddings = embedder.encode(all_sentences, convert_to_numpy=True)
 
-            max_sim = 0.0
-            for i in range(len(text_sents)):
-                for j in range(len(snippet_sents)):
-                    sim = util.cos_sim(embeddings[i], embeddings[len(text_sents)+j])
-                    max_sim = max(max_sim, sim.item())
-            return max_sim
+        max_sim = 0.0
+        for i in range(len(text_sents)):
+            for j in range(len(text_sents), len(all_sentences)):
+                sim = 1 - cosine(embeddings[i], embeddings[j])
+                max_sim = max(max_sim, sim)
+        return max_sim
     except Exception as e:
         print("⚠️ Similarity Error:", e)
         return 0.0
@@ -121,9 +113,8 @@ def score_news(text: str) -> dict:
         url = result["url"]
         snippet = result["snippet"]
         title = result["title"]
-        date = result.get("date", "")
-
         similarity = calculate_semantic_similarity(text.lower(), snippet)
+        date = result.get("date", "")
 
         article = {
             "url": url,
@@ -151,6 +142,8 @@ def score_news(text: str) -> dict:
         "related_articles": related_articles
     }
 
+# Local test
 if __name__ == "__main__":
-    text = "Ameesha Patel is planning to marry Salman Khan and have good-looking babies together."
-    print(score_news(text))
+    sample_news = "Ameesha Patel is planning to marry Salman Khan and have good-looking babies together."
+    print("📰 Input:", sample_news)
+    print("🧠 Output:", score_news(sample_news))
